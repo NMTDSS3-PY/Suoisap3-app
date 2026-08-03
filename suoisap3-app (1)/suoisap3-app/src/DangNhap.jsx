@@ -19,7 +19,7 @@ export default function DangNhap({ onDangNhapThanhCong }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-cyan-800 px-4"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-indigo-900 to-cyan-700 px-4"
       style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}
     >
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8">

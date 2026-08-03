@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { storageGet, storageSet } from "./storage";
-import { Plus, X, ChevronLeft, ChevronRight, AlertTriangle, Users, ClipboardList, ArrowRightLeft, Wrench, Package, FolderOpen, Search, Activity } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, AlertTriangle, Users, ClipboardList, ArrowRightLeft, Wrench, Package, FolderOpen, Search, Activity, Home, LogOut, Zap, FileText } from "lucide-react";
+import DangNhap from "./DangNhap";
+import TrangChu from "./TrangChu";
+import { xuatBanGiaoWord } from "./wordExport";
 
 const CA_LIST = ["Ca 1 (07:30-15:00)", "Ca 2 (15:00-22:00)", "Ca 3 (22:00-07:30)"];
 const VI_TRI = ["Trực chính", "Trực phụ", "Trưởng ca"];
@@ -320,7 +323,11 @@ function startOfWeek(date) {
 const THU = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
 
 export default function QuanLyNhaMay() {
-  const [tab, setTab] = useState("lich");
+  const [daDangNhap, setDaDangNhap] = useState(
+    () => typeof window !== "undefined" && sessionStorage.getItem("ss3_da_dang_nhap") === "true"
+  );
+  const [anhTrangChu, setAnhTrangChu] = useState(null);
+  const [tab, setTab] = useState("trangchu");
   const [tuanGoc, setTuanGoc] = useState(() => startOfWeek(new Date()));
   const [nhanVien, setNhanVien] = useState(NHAN_VIEN_MAU);
   const [phanCa, setPhanCa] = useState({}); // key: `${dateStr}|${ca}` -> [{nvId, viTri}]
@@ -364,7 +371,7 @@ export default function QuanLyNhaMay() {
   useEffect(() => {
     let conKetNoi = true;
     (async () => {
-      const [nv, pc, bg, tb, sc, vt, hs, tsData, tsConfig, ng] = await Promise.all([
+      const [nv, pc, bg, tb, sc, vt, hs, tsData, tsConfig, ng, anh] = await Promise.all([
         taiAnToan("nhanvien"),
         taiAnToan("phanca"),
         taiAnToan("bangiao"),
@@ -375,6 +382,7 @@ export default function QuanLyNhaMay() {
         taiAnToan("thongso-data"),
         taiAnToan("thongso-config"),
         taiAnToan("nguong-canh-bao"),
+        taiAnToan("anh-trang-chu"),
       ]);
       if (!conKetNoi) return;
       if (nv) setNhanVien(nv);
@@ -387,6 +395,7 @@ export default function QuanLyNhaMay() {
       if (tsData) setThongSo(tsData);
       if (tsConfig) setConfigThongSo(tsConfig);
       if (ng) setNguongCanhBao(ng);
+      if (anh) setAnhTrangChu(anh);
       setDaTaiXong(true);
     })();
     return () => {
@@ -424,6 +433,9 @@ export default function QuanLyNhaMay() {
   useEffect(() => {
     if (daTaiXong) storageSet("nguong-canh-bao", JSON.stringify(nguongCanhBao)).catch(() => {});
   }, [nguongCanhBao, daTaiXong]);
+  useEffect(() => {
+    if (daTaiXong && anhTrangChu) storageSet("anh-trang-chu", JSON.stringify(anhTrangChu)).catch(() => {});
+  }, [anhTrangChu, daTaiXong]);
 
 
   const ngayTrongTuan = useMemo(() => {
@@ -541,6 +553,15 @@ export default function QuanLyNhaMay() {
     XLSX.writeFile(wb, `${tenFile}_${toDateStr(new Date())}.xlsx`);
   }
 
+  if (!daDangNhap) {
+    return <DangNhap onDangNhapThanhCong={() => setDaDangNhap(true)} />;
+  }
+
+  function dangXuat() {
+    sessionStorage.removeItem("ss3_da_dang_nhap");
+    setDaDangNhap(false);
+  }
+
   if (!daTaiXong) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
@@ -557,33 +578,43 @@ export default function QuanLyNhaMay() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur px-4 sm:px-8 py-4 sticky top-0 z-20">
+      <header className="bg-gradient-to-r from-blue-950 via-indigo-900 to-cyan-700 px-4 sm:px-8 py-3 sticky top-0 z-20 shadow-lg shadow-black/10">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.2em] text-blue-600 font-semibold">
-              Thủy điện Suối Sập 3
+          <button
+            onClick={() => setTab("trangchu")}
+            className="flex items-center gap-2.5 text-left shrink-0"
+          >
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md shadow-cyan-500/30 shrink-0">
+              <Zap size={18} className="text-white" fill="white" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-50 tracking-tight">
-              Quản lý ca trực
-            </h1>
-          </div>
-          <div className="flex gap-1 bg-slate-100 rounded-lg p-1 flex-wrap">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-300 font-semibold leading-none">
+                Nhà máy thủy điện
+              </div>
+              <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight">
+                Suối Sập 3
+              </h1>
+            </div>
+          </button>
+
+          <div className="flex gap-1 bg-white/10 rounded-lg p-1 flex-wrap">
             {[
+              { id: "trangchu", label: "Trang chủ", icon: Home },
               { id: "lich", label: "Ca trực", icon: ClipboardList },
-              { id: "nhanvien", label: "Nhân viên", icon: Users },
+              { id: "nhanvien", label: "Nhân viên vận hành", icon: Users },
               { id: "bangiao", label: "Bàn giao ca", icon: ArrowRightLeft },
-              { id: "thietbi", label: "Thiết bị & Sự cố", icon: Wrench },
-              { id: "thongso", label: "Thông số thiết bị", icon: Activity },
-              { id: "vattu", label: "Vật tư & Kho", icon: Package },
+              { id: "thietbi", label: "Thiết bị & sự cố", icon: Wrench },
+              { id: "thongso", label: "Ghi thông số thiết bị", icon: Activity },
+              { id: "vattu", label: "Vật tư & kho", icon: Package },
               { id: "hoso", label: "Hồ sơ", icon: FolderOpen },
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap ${
                   tab === t.id
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-600 hover:bg-slate-200/60"
+                    ? "bg-white text-blue-800 shadow-sm"
+                    : "text-cyan-50/90 hover:bg-white/15"
                 }`}
               >
                 <t.icon size={15} />
@@ -591,10 +622,29 @@ export default function QuanLyNhaMay() {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={dangXuat}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-cyan-50/90 hover:bg-white/15 transition shrink-0"
+            title="Đăng xuất"
+          >
+            <LogOut size={15} />
+            <span className="hidden sm:inline">Đăng xuất</span>
+          </button>
         </div>
       </header>
 
       <main className="px-4 sm:px-8 py-6 max-w-7xl mx-auto">
+        {tab === "trangchu" && (
+          <TrangChu
+            anhNen={anhTrangChu}
+            onDoiAnh={setAnhTrangChu}
+            nhanVien={nhanVien}
+            thietBi={thietBi}
+            suCo={suCo}
+            vatTu={vatTu}
+          />
+        )}
         {tab === "lich" && (
           <section>
             <div className="flex items-center justify-between mb-5">
@@ -758,6 +808,27 @@ export default function QuanLyNhaMay() {
             <div className="space-y-4">
               {banGiao.map((b) => (
                 <div key={b.id} className="rounded-lg border border-slate-200 bg-blue-50/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                      Biên bản bàn giao ca
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => xuatBanGiaoWord(b)}
+                        className="flex items-center gap-1.5 border border-blue-300 bg-white text-blue-700 text-xs font-medium px-2.5 py-1.5 rounded-md hover:bg-blue-100 transition"
+                        title="Xuất biên bản này ra file Word"
+                      >
+                        <FileText size={14} /> Xuất Word
+                      </button>
+                      <button
+                        onClick={() => setBanGiao((prev) => prev.filter((x) => x.id !== b.id))}
+                        className="text-slate-400 hover:text-red-600 transition"
+                        title="Xóa biên bản"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
                   <div className="grid sm:grid-cols-3 gap-3 mb-3">
                     <label className="text-xs text-slate-500 flex flex-col gap-1">
                       Ngày
