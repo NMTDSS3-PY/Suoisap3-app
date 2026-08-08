@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { storageGet, storageSet } from "./storage";
-import { Plus, X, ChevronLeft, ChevronRight, AlertTriangle, Users, ClipboardList, ArrowRightLeft, Wrench, Package, FolderOpen, Search, Activity, Home, LogOut, Zap, FileText, Upload } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, AlertTriangle, Users, ClipboardList, ArrowRightLeft, Wrench, Package, FolderOpen, Search, Activity, Home, LogOut, Zap, FileText, Upload, Menu, PanelLeftClose } from "lucide-react";
 import DangNhap from "./DangNhap";
 import TrangChu from "./TrangChu";
 import ChuKyPad from "./ChuKyPad";
@@ -362,6 +362,11 @@ export default function QuanLyNhaMay() {
   const [modal, setModal] = useState(null); // {dateStr, ca}
   const [showThemNV, setShowThemNV] = useState(false);
   const [daTaiXong, setDaTaiXong] = useState(false);
+  const [sidebarMo, setSidebarMo] = useState(false);
+  const namHienTai = new Date().getFullYear();
+  const [namSuCoChon, setNamSuCoChon] = useState(String(namHienTai));
+  const [namThongSoChon, setNamThongSoChon] = useState(String(namHienTai));
+  const [namBanGiaoChon, setNamBanGiaoChon] = useState(String(namHienTai));
 
   // Giới hạn dung lượng file đính kèm cho hồ sơ (do dữ liệu được lưu chung dạng văn bản trên máy chủ).
   const GIOI_HAN_FILE_HOSO = 700 * 1024; // ~700KB/tệp
@@ -605,52 +610,51 @@ export default function QuanLyNhaMay() {
     );
   }
 
+  const DANH_MUC_DIEU_HUONG = [
+    { id: "trangchu", label: "Trang chủ", icon: Home },
+    { id: "lich", label: "Ca trực", icon: ClipboardList },
+    { id: "nhanvien", label: "Nhân viên vận hành", icon: Users },
+    { id: "bangiao", label: "Bàn giao ca", icon: ArrowRightLeft },
+    { id: "thietbi", label: "Thiết bị & Sự cố", icon: Wrench },
+    { id: "thongso", label: "Ghi thông số thiết bị", icon: Activity },
+    { id: "vattu", label: "Vật tư & Kho", icon: Package },
+    { id: "hoso", label: "Hồ sơ", icon: FolderOpen },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-950 via-indigo-900 to-cyan-700 px-4 sm:px-8 py-3 sticky top-0 z-20 shadow-lg shadow-black/10">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <button
-            onClick={() => setTab("trangchu")}
-            className="flex items-center gap-2.5 text-left shrink-0"
-          >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md shadow-cyan-500/30 shrink-0">
-              <Zap size={18} className="text-white" fill="white" />
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-300 font-semibold leading-none">
-                Nhà máy thủy điện
+      <header className="bg-gradient-to-r from-blue-950 via-indigo-900 to-cyan-700 px-3 sm:px-6 py-3 sticky top-0 z-30 shadow-lg shadow-black/10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarMo((v) => !v)}
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-white hover:bg-white/15 transition shrink-0"
+              title={sidebarMo ? "Đóng menu" : "Mở menu"}
+              aria-label="Bật/tắt menu điều hướng"
+            >
+              <Menu size={20} />
+            </button>
+            <button
+              onClick={() => setTab("trangchu")}
+              className="flex items-center gap-2.5 text-left shrink-0 min-w-0"
+            >
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md shadow-cyan-500/30 shrink-0">
+                <Zap size={18} className="text-white" fill="white" />
               </div>
-              <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight">
-                Suối Sập 3
-              </h1>
-            </div>
-          </button>
+              <div className="min-w-0 hidden xs:block">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-300 font-semibold leading-none">
+                  Nhà máy thủy điện
+                </div>
+                <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight truncate">
+                  Suối Sập 3
+                </h1>
+              </div>
+            </button>
+          </div>
 
-          <div className="flex gap-1 bg-white/10 rounded-lg p-1 flex-wrap">
-            {[
-              { id: "trangchu", label: "Trang chủ", icon: Home },
-              { id: "lich", label: "Ca trực", icon: ClipboardList },
-              { id: "nhanvien", label: "Nhân viên vận hành", icon: Users },
-              { id: "bangiao", label: "Bàn giao ca", icon: ArrowRightLeft },
-              { id: "thietbi", label: "Thiết bị & sự cố", icon: Wrench },
-              { id: "thongso", label: "Ghi thông số thiết bị", icon: Activity },
-              { id: "vattu", label: "Vật tư & kho", icon: Package },
-              { id: "hoso", label: "Hồ sơ", icon: FolderOpen },
-            ].map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap ${
-                  tab === t.id
-                    ? "bg-white text-blue-800 shadow-sm"
-                    : "text-cyan-50/90 hover:bg-white/15"
-                }`}
-              >
-                <t.icon size={15} />
-                {t.label}
-              </button>
-            ))}
+          <div className="text-sm font-medium text-cyan-50/90 truncate hidden sm:block">
+            {DANH_MUC_DIEU_HUONG.find((t) => t.id === tab)?.label || ""}
           </div>
 
           <button
@@ -664,7 +668,47 @@ export default function QuanLyNhaMay() {
         </div>
       </header>
 
-      <main className="px-4 sm:px-8 py-6 max-w-7xl mx-auto">
+      <div className="flex">
+        {/* Lớp phủ nền khi mở menu trên màn hình nhỏ */}
+        {sidebarMo && (
+          <div
+            onClick={() => setSidebarMo(false)}
+            className="fixed inset-0 bg-slate-900/40 z-20 lg:hidden"
+          />
+        )}
+
+        {/* Thanh điều hướng bên trái */}
+        <aside
+          className={`fixed top-[60px] left-0 bottom-0 z-20 bg-white border-r border-slate-200 shadow-xl transition-transform duration-200 ease-out overflow-y-auto ${
+            sidebarMo ? "translate-x-0" : "-translate-x-full"
+          } w-64`}
+        >
+          <nav className="p-3 space-y-1">
+            {DANH_MUC_DIEU_HUONG.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setTab(t.id);
+                  if (window.innerWidth < 1024) setSidebarMo(false);
+                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                  tab === t.id
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <t.icon size={17} className="shrink-0" />
+                <span className="truncate">{t.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <main
+          className={`flex-1 min-w-0 px-4 sm:px-8 py-6 max-w-7xl mx-auto transition-[margin] duration-200 ease-out ${
+            sidebarMo ? "lg:ml-64" : "ml-0"
+          }`}
+        >
         {tab === "trangchu" && (
           <TrangChu
             anhNen={anhTrangChu}
@@ -812,34 +856,55 @@ export default function QuanLyNhaMay() {
 
         {tab === "bangiao" && (
           <section>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
               <h2 className="text-lg font-semibold">Sổ bàn giao ca</h2>
-              <button
-                onClick={() =>
-                  setBanGiao((prev) => [
-                    {
-                      id: Date.now(),
-                      ngay: toDateStr(new Date()),
-                      ca: CA_LIST[0],
-                      nguoiGiao: "",
-                      nguoiNhan: "",
-                      chuKyGiao: "",
-                      chuKyNhan: "",
-                      thongSo: "",
-                      suCo: "",
-                      ghiChu: "",
-                    },
-                    ...prev,
-                  ])
-                }
-                className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-blue-500 transition"
-              >
-                <Plus size={15} /> Tạo biên bản mới
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={namBanGiaoChon}
+                  onChange={(e) => setNamBanGiaoChon(e.target.value)}
+                  className="bg-slate-100 rounded-md px-3 py-2 text-sm border border-slate-300 font-medium"
+                  title="Lọc biên bản theo năm"
+                >
+                  <option value="tatca">Tất cả các năm</option>
+                  {[...new Set(banGiao.map((b) => (b.ngay || "").slice(0, 4)).filter(Boolean))]
+                    .concat(String(namHienTai))
+                    .filter((n, i, arr) => arr.indexOf(n) === i)
+                    .sort((a, b) => b - a)
+                    .map((n) => (
+                      <option key={n} value={n}>
+                        Năm {n}
+                      </option>
+                    ))}
+                </select>
+                <button
+                  onClick={() =>
+                    setBanGiao((prev) => [
+                      {
+                        id: Date.now(),
+                        ngay: toDateStr(new Date()),
+                        ca: CA_LIST[0],
+                        nguoiGiao: "",
+                        nguoiNhan: "",
+                        chuKyGiao: "",
+                        chuKyNhan: "",
+                        thongSo: "",
+                        suCo: "",
+                        ghiChu: "",
+                      },
+                      ...prev,
+                    ])
+                  }
+                  className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-blue-500 transition whitespace-nowrap"
+                >
+                  <Plus size={15} /> Tạo biên bản mới
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
-              {banGiao.map((b) => (
+              {banGiao
+                .filter((b) => namBanGiaoChon === "tatca" || (b.ngay || "").slice(0, 4) === namBanGiaoChon)
+                .map((b) => (
                 <div key={b.id} className="rounded-lg border border-slate-200 bg-blue-50/50 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-medium text-blue-700 uppercase tracking-wide">
@@ -979,9 +1044,15 @@ export default function QuanLyNhaMay() {
                   </div>
                 </div>
               ))}
+              {banGiao.filter((b) => namBanGiaoChon === "tatca" || (b.ngay || "").slice(0, 4) === namBanGiaoChon).length === 0 && (
+                <p className="text-sm text-slate-500 italic text-center py-6 border border-dashed border-slate-300 rounded-lg">
+                  Không có biên bản bàn giao ca nào trong năm này.
+                </p>
+              )}
             </div>
           </section>
         )}
+
         {tab === "thietbi" && (
           <section className="space-y-8">
             <div>
@@ -1077,29 +1148,51 @@ export default function QuanLyNhaMay() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
                 <h2 className="text-lg font-semibold">Nhật ký sự cố</h2>
-                <button
-                  onClick={() =>
-                    setSuCo((prev) => [
-                      {
-                        id: Date.now(),
-                        ngay: toDateStr(new Date()),
-                        thietBi: "",
-                        moTa: "",
-                        mucDo: "Trung bình",
-                        trangThai: "Đang xử lý",
-                      },
-                      ...prev,
-                    ])
-                  }
-                  className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-blue-500 transition"
-                >
-                  <Plus size={15} /> Ghi nhận sự cố
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={namSuCoChon}
+                    onChange={(e) => setNamSuCoChon(e.target.value)}
+                    className="bg-slate-100 rounded-md px-3 py-2 text-sm border border-slate-300 font-medium"
+                    title="Lọc sự cố theo năm"
+                  >
+                    <option value="tatca">Tất cả các năm</option>
+                    {[...new Set(suCo.map((sc) => (sc.ngay || "").slice(0, 4)).filter(Boolean))]
+                      .sort((a, b) => b - a)
+                      .concat(String(namHienTai))
+                      .filter((n, i, arr) => arr.indexOf(n) === i)
+                      .sort((a, b) => b - a)
+                      .map((n) => (
+                        <option key={n} value={n}>
+                          Năm {n}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    onClick={() =>
+                      setSuCo((prev) => [
+                        {
+                          id: Date.now(),
+                          ngay: toDateStr(new Date()),
+                          thietBi: "",
+                          moTa: "",
+                          mucDo: "Trung bình",
+                          trangThai: "Đang xử lý",
+                        },
+                        ...prev,
+                      ])
+                    }
+                    className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-blue-500 transition whitespace-nowrap"
+                  >
+                    <Plus size={15} /> Ghi nhận sự cố
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
-                {suCo.map((sc) => (
+                {suCo
+                  .filter((sc) => namSuCoChon === "tatca" || (sc.ngay || "").slice(0, 4) === namSuCoChon)
+                  .map((sc) => (
                   <div key={sc.id} className="rounded-lg border border-slate-200 bg-blue-50/50 p-4">
                     <div className="grid sm:grid-cols-4 gap-3 mb-3">
                       <input
@@ -1142,6 +1235,11 @@ export default function QuanLyNhaMay() {
                     />
                   </div>
                 ))}
+                {suCo.filter((sc) => namSuCoChon === "tatca" || (sc.ngay || "").slice(0, 4) === namSuCoChon).length === 0 && (
+                  <p className="text-sm text-slate-500 italic text-center py-6 border border-dashed border-slate-300 rounded-lg">
+                    Không có sự cố nào được ghi nhận trong năm này.
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -1187,6 +1285,23 @@ export default function QuanLyNhaMay() {
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                   <h2 className="text-lg font-semibold">{configThongSo[bangThongSoChon].ten}</h2>
                   <div className="flex gap-2 flex-wrap">
+                    <select
+                      value={namThongSoChon}
+                      onChange={(e) => setNamThongSoChon(e.target.value)}
+                      className="bg-slate-100 rounded-md px-3 py-2 text-sm border border-slate-300 font-medium"
+                      title="Lọc bản ghi theo năm"
+                    >
+                      <option value="tatca">Tất cả các năm</option>
+                      {[...new Set((thongSo[bangThongSoChon] || []).map((r) => (r.thoiGian || "").slice(0, 4)).filter(Boolean))]
+                        .concat(String(namHienTai))
+                        .filter((n, i, arr) => arr.indexOf(n) === i)
+                        .sort((a, b) => b - a)
+                        .map((n) => (
+                          <option key={n} value={n}>
+                            Năm {n}
+                          </option>
+                        ))}
+                    </select>
                     <button
                       onClick={() => setShowNguongModal(true)}
                       className="flex items-center gap-1.5 border border-slate-300 text-slate-600 text-sm font-medium px-3 py-2 rounded-md hover:bg-slate-100 transition"
@@ -1210,7 +1325,9 @@ export default function QuanLyNhaMay() {
 
                 {(() => {
                   const cfg = configThongSo[bangThongSoChon];
-                  const rows = thongSo[bangThongSoChon] || [];
+                  const rows = (thongSo[bangThongSoChon] || []).filter(
+                    (r) => namThongSoChon === "tatca" || (r.thoiGian || "").slice(0, 4) === namThongSoChon
+                  );
                   let soVuot = 0;
                   rows.forEach((row) =>
                     cfg.cols.forEach((c) => {
@@ -1266,7 +1383,9 @@ export default function QuanLyNhaMay() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(thongSo[bangThongSoChon] || []).map((row) => (
+                      {(thongSo[bangThongSoChon] || [])
+                        .filter((r) => namThongSoChon === "tatca" || (r.thoiGian || "").slice(0, 4) === namThongSoChon)
+                        .map((row) => (
                         <tr key={row.id} className="border-t border-slate-200">
                           <td className="p-3">
                             <input
@@ -1356,8 +1475,30 @@ export default function QuanLyNhaMay() {
                     const thieu = vt.tonKho < vt.dinhMuc;
                     return (
                       <tr key={vt.id} className="border-t border-slate-200">
-                        <td className="p-3 font-medium">{vt.ten}</td>
-                        <td className="p-3 text-slate-600">{vt.donVi}</td>
+                        <td className="p-3 font-medium">
+                          <input
+                            value={vt.ten}
+                            onChange={(e) =>
+                              setVatTu((prev) =>
+                                prev.map((x) => (x.id === vt.id ? { ...x, ten: e.target.value } : x))
+                              )
+                            }
+                            placeholder="Tên vật tư"
+                            className="w-full min-w-[160px] bg-transparent border-b border-transparent focus:border-blue-400 focus:outline-none"
+                          />
+                        </td>
+                        <td className="p-3 text-slate-600">
+                          <input
+                            value={vt.donVi}
+                            onChange={(e) =>
+                              setVatTu((prev) =>
+                                prev.map((x) => (x.id === vt.id ? { ...x, donVi: e.target.value } : x))
+                              )
+                            }
+                            placeholder="Đơn vị"
+                            className="w-20 bg-transparent border-b border-transparent focus:border-blue-400 focus:outline-none"
+                          />
+                        </td>
                         <td className="p-3">
                           <input
                             type="number"
@@ -1372,7 +1513,18 @@ export default function QuanLyNhaMay() {
                             }`}
                           />
                         </td>
-                        <td className="p-3 text-slate-600">{vt.dinhMuc}</td>
+                        <td className="p-3 text-slate-600">
+                          <input
+                            type="number"
+                            value={vt.dinhMuc}
+                            onChange={(e) =>
+                              setVatTu((prev) =>
+                                prev.map((x) => (x.id === vt.id ? { ...x, dinhMuc: Number(e.target.value) } : x))
+                              )
+                            }
+                            className="w-20 bg-slate-100 rounded px-2 py-1 text-sm border border-slate-300"
+                          />
+                        </td>
                         <td className="p-3">
                           <button
                             onClick={() => setVatTu((prev) => prev.filter((x) => x.id !== vt.id))}
@@ -1550,7 +1702,8 @@ export default function QuanLyNhaMay() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>
 
       {/* Modal phân ca */}
       {modal && (
